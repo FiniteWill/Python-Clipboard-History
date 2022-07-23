@@ -31,9 +31,16 @@ def copy(cop):
     recent_value = cop
     pyperclip.copy(cop)
     print(cop)
-def delete(entry):
-    clipboard.remove(entry)
-    
+def delete(entry, txt):
+    try:
+        y=clipboard.index(txt)
+        canvas_entries.remove(entry)
+        clipboard.remove(txt)
+        grid(row=y, column=0)
+        grid(row=y, column=1)
+    except:
+        print('Value: '+str(entry)+' not found in clipboard')
+        print('Text = '+str(txt))
 def thread_func():
     # Creating local variant of global var to use
     global recent_value
@@ -54,9 +61,13 @@ def thread_func():
                 y = clipboard.index(str(temp_value))
 
                 canvas_entries.append(ttk.Button(entry_canvas, text=recent_value,
-                                         width=100, command=lambda x=temp_value:copy(x)))
-                canvas_entries[len(clipboard)-1].grid(row=len(clipboard), column=0) 
-      
+                                width=100, command=lambda x=temp_value: copy(x)))
+                canvas_entries[len(clipboard)-1].grid(row=len(clipboard), column=0)
+                
+                test = ttk.Button(entry_canvas, text="Delete", width=10,
+                            command=lambda x=canvas_entries[len(clipboard)-1],
+                            x2=recent_value: delete(x, x2))
+                test.grid(row=len(clipboard), column=1)
             elif len(clipboard) >= clipboard_size:
                 print("Clipboard Full")
             else:
