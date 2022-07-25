@@ -16,6 +16,7 @@ from threading import Thread
 entry_display_len = 40
 clipboard_size = 30
 clipboard = []
+del_buttons = []
 recent_value = ""
 root = tk.Tk()
 
@@ -31,16 +32,37 @@ def copy(cop):
     recent_value = cop
     pyperclip.copy(cop)
     print(cop)
-def delete(entry, txt):
-    try:
-        y=clipboard.index(txt)
-        canvas_entries.remove(entry)
+def delete(entry, txt, button):
+    # Get the clipboard element of this entry and remove it 
+    y=clipboard.index(txt)
+    clipboard.remove(clipboard[y])
+    # Delete the GUI button for copying entry
+    canvas_entries[canvas_entries.index(entry)].destroy()
+    canvas_entries.remove(entry)
+    # Delete the GUI button for deleting an entry
+    del_buttons.remove(button)
+    button.destroy()
+    print('Clipboard after deletion: '+str(len(clipboard)))
+    '''     
         clipboard.remove(txt)
-        grid(row=y, column=0)
-        grid(row=y, column=1)
+    try:
+        # Get the clipboard element of this entry and remove it 
+        y=clipboard.index(txt)
+        # Delete the GUI button for copying entry
+        canvas_entries[canvas_entries.index(entry)].destroy()
+        canvas_entries.remove(entry)
+        # Delete the GUI button for deleting an entry
+        del_buttons.remove(button)
+        button.destroy()
+        #del_buttons[y].destroy()
+        #del_buttons.remove(del_buttons[y])
+        # TODO: Reorder the other GUI elements to fill empty space
+        
+        clipboard.remove(txt)
     except:
         print('Value: '+str(entry)+' not found in clipboard')
         print('Text = '+str(txt))
+    '''
 def thread_func():
     # Creating local variant of global var to use
     global recent_value
@@ -62,12 +84,16 @@ def thread_func():
 
                 canvas_entries.append(ttk.Button(entry_canvas, text=recent_value,
                                 width=100, command=lambda x=temp_value: copy(x)))
+                print("Clipboard after copying: "+str(len(clipboard)))
                 canvas_entries[len(clipboard)-1].grid(row=len(clipboard), column=0)
                 
-                test = ttk.Button(entry_canvas, text="Delete", width=10,
-                            command=lambda x=canvas_entries[len(clipboard)-1],
-                            x2=recent_value: delete(x, x2))
+                test = ttk.Button(entry_canvas, text="Delete", width=10)
+                
+                test.configure(command=lambda x=canvas_entries[len(clipboard)-1],
+                            x2=recent_value, button=test: delete(x, x2, button))
+
                 test.grid(row=len(clipboard), column=1)
+                del_buttons.append(test)
             elif len(clipboard) >= clipboard_size:
                 print("Clipboard Full")
             else:
@@ -79,7 +105,7 @@ def thread_func():
 if __name__ == '__main__':
     # GUI main window initialization
     root.title("Clipboard History")
-    root.geometry("500x250")
+    root.geometry("800x250")
     root.config(bg='#000000') #F25252 (Melon pink)
     
     root.grid()
