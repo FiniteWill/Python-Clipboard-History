@@ -1,3 +1,4 @@
+import os
 import time
 import sys
 # Used to access clipboard
@@ -12,25 +13,38 @@ from tkinter import ttk
 # and updating clipboard happen simultaneously
 from threading import Thread
 
-# Global vars
+# Clipboard Data
 entry_display_len = 40
 clipboard_size = 30
 clipboard = []
 del_buttons = []
 recent_value = ""
+# Session Data
+session_dir_name = "\\Test"
+sessions_dir = os.path.expanduser("~\Desktop")+session_dir_name
+#os.getcwd()+session_dir_name
+all_sessions = []
+selected_session = "Default"
+selected_session_path = sessions_dir+"\\"+selected_session
+# GUI Data
 root = tk.Tk()
+main_frame = ttk.Frame(root)
 
 canvas_width = 200;
 canvas_height = 200;
-entry_canvas = tk.Canvas(root, bg="white", height=canvas_height, width=canvas_width)
+entry_canvas = tk.Canvas(root, bg="white", height=canvas_height, width=canvas_width,
+                         scrollregion=(0,0,500,500))
 canvas_entries = []
 
 text = tk.Text(root, height=40, width=40, bg='#000000', fg='#FFFFFF')
 test_threading = 0
 
+# Clipboard functions
 def copy(cop):
     recent_value = cop
     pyperclip.copy(cop)
+
+    write_entry_to_session()
     print(cop)
 def delete(entry, txt, button):
     try:
@@ -46,20 +60,47 @@ def delete(entry, txt, button):
         # Shift GUI elements
         i=0
         for x in range(0,len(clipboard)):
-            print('Clipboard Entry '+str(clipboard[x])+' row = '+str(i))
+            #print('Clipboard Entry '+str(clipboard[x])+' row = '+str(i))
             canvas_entries[x].grid(row=i, column=0)
             del_buttons[x].grid(row=i, column=1)
             i+=1
 
     except:
         print('Deletion of '+str(entry)+' with text '+str(txt)+'failed.')
+# Session functions
+def open_session(session):
+    try:
+        selected_session = open(str(sessions_dir) + "\\" + str(session), mode="w+")        
+    except:
+        print("Cannot open session, creating new session")
+        selected_session = open("", mode="w+")
+    selected_session.close()
+    
+def write_entry_to_session(*, session=selected_session):
+    #print(str(session)+".txt")
+    #print(sessions_dir+".txt")
+    #print(os.getcwd())
+    #print(os.path.expanduser("~\Desktop"))
+    try:
+        file = open(selected_session_path+".txt", "a")
+    except:
+        file = open(os.getcwd()+selected_session+".txt", "w+")
+    file.write(recent_value[0:entry_display_len])
+    file.close()
+def remove_entry_from_session(entry, *, session=selected_session):
+    file = open(session, "w")
+    file_str = file.read()
+    new_file_str = file_str.replace(str(entry), "")
+    file.write(new_file_str)
+    file.close()
+    
 
 def thread_func():
     # Creating local variant of global var to use
     global recent_value
     global test_threading
     global canvas_entries
-
+            
     while True:
         test_threading+=1
         temp_value = pyperclip.paste()
@@ -106,14 +147,22 @@ if __name__ == '__main__':
     
 
     # create a scrollbar widget and set its command to the text widget
-    scrollbar = ttk.Scrollbar(root, orient='vertical', command=text.yview)
-    scrollbar.grid(row=2, column=1, sticky=tk.NS)
+    scrollbar = ttk.Scrollbar(root, orient='vertical', command=entry_canvas.yview)
+    scrollbar.grid(row=0, column=3, sticky="ns")
 
-    #  communicate back to the scrollbar
-    text['yscrollcommand'] = scrollbar.set
+    # communicate back to the scrollbar
     #entry_canvas['yscrollcommand'] = scrollbar.set
-         
+    #entry_canvas['yscrollcommand'] = scrollbar.set
+    
+    entry_canvas.config(yscrollcommand=scrollbar.set)
+    entry_canvas.configure(scrollregion=entry_canvas.bbox("all"))
+    entry_canvas.bind('<Configure>', lambda e: entry_canvas.configure(scrollregion
+                       = entry_canvas.bbox("all")))     
 
+    second_frame = ttk.Frame(entry_canvas)
+
+    entry_canvas.create_window((0,0), window=second_frame, anchor="nw")
+    
     def print_clipboard(e):
         for i in range(0, len(clipboard)):
             print('Clipboard ['+str(i)+'] '+str(clipboard[i]))
