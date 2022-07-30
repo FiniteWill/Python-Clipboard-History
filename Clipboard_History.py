@@ -1,4 +1,6 @@
 import os
+# Used for file type regex
+import glob
 import time
 import sys
 # Used to access clipboard
@@ -13,19 +15,6 @@ from tkinter import ttk
 # and updating clipboard happen simultaneously
 from threading import Thread
 
-# Clipboard Data
-entry_display_len = 40
-clipboard_size = 30
-clipboard = []
-del_buttons = []
-recent_value = ""
-# Session Data
-session_dir_name = "\\Test"
-sessions_dir = os.path.expanduser("~\Desktop")+session_dir_name
-#os.getcwd()+session_dir_name
-all_sessions = []
-selected_session = "Default"
-selected_session_path = sessions_dir+"\\"+selected_session
 # GUI Data
 root = tk.Tk()
 main_frame = ttk.Frame(root)
@@ -38,14 +27,31 @@ canvas_entries = []
 
 text = tk.Text(root, height=40, width=40, bg='#000000', fg='#FFFFFF')
 test_threading = 0
+# Clipboard Data
+entry_display_len = 40
+clipboard_size = 30
+clipboard = []
+del_buttons = []
+recent_value = ""
+# Session Data
+session_frame = ttk.Frame(root)
+session_frame.grid(row=0,column=0)
+
+session_dir_name = "\\Test"
+sessions_dir = os.path.expanduser("~\Desktop")+session_dir_name
+#os.getcwd()+session_dir_name
+session_buttons = []
+all_sessions = []
+selected_session = "Default"
+selected_session_path = sessions_dir+"\\"+selected_session
+
 
 # Clipboard functions
 def copy(cop):
     recent_value = cop
     pyperclip.copy(cop)
+    
     write_entry_to_session(cop)
-    #write_session = lambda x=cop : write_entry_to_session(str(x))
-    #write_session()
     print("COPIED\n"+cop)
 def delete(entry, txt, button):
     try:
@@ -65,13 +71,11 @@ def delete(entry, txt, button):
             canvas_entries[x].grid(row=i, column=0)
             del_buttons[x].grid(row=i, column=1)
             i+=1
-    
         try:
             print("entry: "+txt)
             remove_entry_from_session(txt)
         except:
             print("failed to remove entry from session")
-
     except:
         print('Deletion of '+str(entry)+' with text '+str(txt)+'failed.')
 # Session functions
@@ -80,14 +84,12 @@ def open_session(session):
         selected_session = open(str(sessions_dir) + "\\" + str(session), mode="w+")        
     except:
         print("Cannot open session, creating new session")
-        selected_session = open("", mode="w+")
+        selected_session = open("Default.txt", mode="w+")
     selected_session.close()
     
 def write_entry_to_session(entry, *, session=selected_session):
-    #print(str(session)+".txt")
-    #print(sessions_dir+".txt")
-    #print(os.getcwd())
-    #print(os.path.expanduser("~\Desktop"))
+    # Open up the specificed session file and append the entry to it
+    # If the file cannot be found, create a new one and write the entry to it
     try:
         file = open(selected_session_path+".txt", "a")
     except:
@@ -114,6 +116,21 @@ def thread_func():
     global recent_value
     global test_threading
     global canvas_entries
+
+    # Generate session selection buttons
+    numSessions = 0
+    for file in os.listdir(sessions_dir):
+        if file.endswith(".txt"):
+            numSessions+=1
+            file_name = str(file).replace(".txt","")
+            session_button = ttk.Button(session_frame, text=file_name, width=10)
+            session_buttons.append(session_button)
+    # If no session was found in the directory, make one
+    if numSessions < 1:
+        file = open("Default.txt", "w")
+        file.close()
+        session_button = ttk.Button(file, text="Default", width=10)
+        session_buttons.append(session_button)
             
     while True:
         test_threading+=1
