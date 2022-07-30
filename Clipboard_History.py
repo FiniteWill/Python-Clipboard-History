@@ -45,10 +45,10 @@ def copy(cop):
     pyperclip.copy(cop)
 
     write_entry_to_session()
-    print(cop)
+    print("COPIED\n"+cop)
 def delete(entry, txt, button):
     try:
-        # Get the clipboard element of this entry and remove it 
+        # Get the clipboard element of this entry and remove it
         y=clipboard.index(txt)
         clipboard.remove(clipboard[y])
         # Delete the GUI button for copying entry
@@ -64,6 +64,12 @@ def delete(entry, txt, button):
             canvas_entries[x].grid(row=i, column=0)
             del_buttons[x].grid(row=i, column=1)
             i+=1
+    
+        try:
+            print("entry: "+txt)
+            remove_entry_from_session(txt)
+        except:
+            print("failed to remove entry from session")
 
     except:
         print('Deletion of '+str(entry)+' with text '+str(txt)+'failed.')
@@ -85,15 +91,25 @@ def write_entry_to_session(*, session=selected_session):
         file = open(selected_session_path+".txt", "a")
     except:
         file = open(os.getcwd()+selected_session+".txt", "w+")
-    file.write(recent_value[0:entry_display_len])
+    file.write(recent_value)
     file.close()
 def remove_entry_from_session(entry, *, session=selected_session):
-    file = open(session, "w")
-    file_str = file.read()
-    new_file_str = file_str.replace(str(entry), "")
-    file.write(new_file_str)
-    file.close()
-    
+    # Open up of the specified session file (selected / current session by default)
+    # And overwrite previous data to remove entry
+    try:
+        file = open(selected_session_path+".txt", "r")
+        content = str(file.read())
+        print("gumbo: "+content)
+        print("jumbo: "+entry)
+        new_content = content.replace(str(entry),"")
+        print("gumbo2: "+new_content)
+        file.close()
+        file = open(selected_session_path+".txt", "w")
+        file.write(new_content)
+        #print(file.read())
+        file.close()
+    except:
+        print("file open failed")
 
 def thread_func():
     # Creating local variant of global var to use
@@ -104,7 +120,7 @@ def thread_func():
     while True:
         test_threading+=1
         temp_value = pyperclip.paste()
-        if temp_value != recent_value:
+        if temp_value != recent_value or len(clipboard) == 0:
             recent_value = temp_value 
 
             # Check that there is room for the entry and that it is not already in clipboard
