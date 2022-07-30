@@ -43,8 +43,9 @@ test_threading = 0
 def copy(cop):
     recent_value = cop
     pyperclip.copy(cop)
-
-    write_entry_to_session()
+    write_entry_to_session(cop)
+    #write_session = lambda x=cop : write_entry_to_session(str(x))
+    #write_session()
     print("COPIED\n"+cop)
 def delete(entry, txt, button):
     try:
@@ -82,7 +83,7 @@ def open_session(session):
         selected_session = open("", mode="w+")
     selected_session.close()
     
-def write_entry_to_session(*, session=selected_session):
+def write_entry_to_session(entry, *, session=selected_session):
     #print(str(session)+".txt")
     #print(sessions_dir+".txt")
     #print(os.getcwd())
@@ -91,7 +92,7 @@ def write_entry_to_session(*, session=selected_session):
         file = open(selected_session_path+".txt", "a")
     except:
         file = open(os.getcwd()+selected_session+".txt", "w+")
-    file.write(recent_value)
+    file.write(str(entry))
     file.close()
 def remove_entry_from_session(entry, *, session=selected_session):
     # Open up of the specified session file (selected / current session by default)
@@ -99,14 +100,11 @@ def remove_entry_from_session(entry, *, session=selected_session):
     try:
         file = open(selected_session_path+".txt", "r")
         content = str(file.read())
-        print("gumbo: "+content)
-        print("jumbo: "+entry)
         new_content = content.replace(str(entry),"")
-        print("gumbo2: "+new_content)
         file.close()
+        
         file = open(selected_session_path+".txt", "w")
         file.write(new_content)
-        #print(file.read())
         file.close()
     except:
         print("file open failed")
