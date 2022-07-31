@@ -53,6 +53,9 @@ def copy(cop):
     
     write_entry_to_session(cop)
     print("COPIED\n"+cop)
+'''
+Deletes an entry from the clipboard along with associated GUI elements.
+'''
 def delete(entry, txt, button):
     try:
         # Get the clipboard element of this entry and remove it
@@ -78,6 +81,18 @@ def delete(entry, txt, button):
             print("failed to remove entry from session")
     except:
         print('Deletion of '+str(entry)+' with text '+str(txt)+'failed.')
+'''
+Clears out the clipboard
+'''
+def clear():
+    for x in clipboard:
+        clipboard.remove(x)
+    for x in canvas_entries:
+        x.destroy()
+        canvas_entries.remove(x)
+    for x in del_buttons:
+        x.destroy()
+        canvas_entries.remove(x)
 # Session functions
 def open_session(session):
     try:
@@ -86,6 +101,21 @@ def open_session(session):
         print("Cannot open session, creating new session")
         selected_session = open("Default.txt", mode="w+")
     selected_session.close()
+    
+def load_session_to_clipboard(session, *, additive=False):
+    try:
+        # Parse Session file into container
+        file = open(selected_session_path+".txt", "r")
+        session_data = []
+        for line in file.getlines():
+            session_data.append(line)
+        file.close()
+        # If additive, append session values to clipboard else overwrite
+        # clipboard values with session data
+        if additive == true:
+            clear()
+    except:
+        print("Cannot find session, nothing was loaded to clipboard")
     
 def write_entry_to_session(entry, *, session=selected_session):
     # Open up the specificed session file and append the entry to it
@@ -96,6 +126,7 @@ def write_entry_to_session(entry, *, session=selected_session):
         file = open(os.getcwd()+selected_session+".txt", "w+")
     file.write(str(entry))
     file.close()
+    
 def remove_entry_from_session(entry, *, session=selected_session):
     # Open up of the specified session file (selected / current session by default)
     # And overwrite previous data to remove entry
