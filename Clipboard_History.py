@@ -151,17 +151,31 @@ def thread_func():
     # Generate session selection buttons
     numSessions = 0
     for file in os.listdir(sessions_dir):
+        print(str(file))
         if file.endswith(".txt"):
             numSessions+=1
+            cur_session = file.replace(".txt","")
             file_name = str(file).replace(".txt","")
+
+            # Create the Button for loading the current session
             session_button = ttk.Button(session_frame, text=file_name, width=10)
+            session_button.configure(command=
+                lambda x=cur_session: load_session_to_clipboard(x))
+            session_button.grid(row=0, column=numSessions)
             session_buttons.append(session_button)
     # If no session was found in the directory, make one
     if numSessions < 1:
+        print("No sessions found, creating Default")
+        # Create empty default session
         file = open("Default.txt", "w")
         file.close()
+    
+        # Create the Button for loading the default session into the clipboard
+        selected_session = "Default"
         session_button = ttk.Button(file, text="Default", width=10)
+        session_button.configure(command=load_session_to_clipboard(selected_session))
         session_buttons.append(session_button)
+
             
     while True:
         test_threading+=1
@@ -172,12 +186,11 @@ def thread_func():
             # Check that there is room for the entry and that it is not already in clipboard
             if len(clipboard) < clipboard_size and recent_value not in clipboard:
                 clipboard.append(recent_value)
- 
                 # Add GUI buttons for copying and deleting the new entry
                 canvas_entries.append(ttk.Button(entry_canvas, text=recent_value,
                                 width=100, command=lambda text=temp_value: copy(text)))
-
                 canvas_entries[len(clipboard)-1].grid(row=len(clipboard), column=0)
+                
                 # Creating Button before configuring command becuase del_button needs to
                 # have a refernce to itself to be able to destroy itself in delete()
                 del_button = ttk.Button(entry_canvas, text="Delete", width=10)
@@ -205,7 +218,7 @@ if __name__ == '__main__':
     root.grid_rowconfigure(0, weight=1)
     
     #text.grid(row=0, column=0, sticky=tk.NSEW)
-    entry_canvas.grid(row=0, column=0, sticky=tk.EW)
+    entry_canvas.grid(row=2, column=0, sticky=tk.EW)
     
 
     # create a scrollbar widget and set its command to the text widget
