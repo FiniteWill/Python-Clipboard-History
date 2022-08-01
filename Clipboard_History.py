@@ -85,6 +85,7 @@ def delete(entry, txt, button):
 Clears out the clipboard
 '''
 def clear():
+    # Empty the clipboard and entries (including GUI elements)
     for x in clipboard:
         clipboard.remove(x)
     for x in canvas_entries:
@@ -104,15 +105,17 @@ def open_session(session):
     
 def load_session_to_clipboard(session, *, additive=False):
     try:
+        selected_session = session
+        selected_session_path = sessions_dir+"\\"+selected_session
         # Parse Session file into container
         file = open(selected_session_path+".txt", "r")
         session_data = []
-        for line in file.getlines():
+        for line in file:
             session_data.append(line)
         file.close()
         # If additive, append session values to clipboard else overwrite
         # clipboard values with session data
-        if additive == true:
+        if additive == False:
             clear()
     except:
         print("Cannot find session, nothing was loaded to clipboard")
