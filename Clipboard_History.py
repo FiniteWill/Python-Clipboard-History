@@ -45,6 +45,7 @@ all_sessions = []
 selected_session = "Default"
 selected_session_path = sessions_dir+"\\"+selected_session
 
+is_running = True
 
 # Clipboard functions
 def copy(cop):
@@ -84,19 +85,25 @@ def delete(entry, txt, button):
 '''
 Clears out the clipboard
 '''
-def clear():
+def clear(*,clear_cur=False):
     # Empty the clipboard and entries (including GUI elements)
-    print("length "+str(len(clipboard)))
+    cur_clip = pyperclip.paste()
+    cur_entry = canvas_entries[-1]
+    cur_del_button = del_buttons[-1]
+    
     for x in clipboard:
         print("clipboard : "+str(x))
         print(x)
-        clipboard.remove(x)
+        if clear_cur is True and x == clear_cur or x != clear_cur:
+            clipboard.remove(x)
     for x in canvas_entries:
-        x.destroy()
-        canvas_entries.remove(x)
+        if clear_cur is True and x == cur_entry or x != cur_entry:
+            x.destroy()
+            canvas_entries.remove(x)
     for x in del_buttons:
-        x.destroy()
-        del_buttons.remove(x)
+        if clear_cur is True and x == cur_del_button or x != cur_del_button:
+            x.destroy()
+            del_buttons.remove(x)
 # Session functions
 def open_session(session):
     try:
@@ -115,14 +122,18 @@ def load_session_to_clipboard(session, *, additive=False):
         # clipboard values with session data
         if additive == False:
             clear()
+            clipboard.append(pyperclip.paste())
         selected_session = session
         selected_session_path = sessions_dir+"\\"+selected_session
         # Parse Session file into container
         file = open(selected_session_path+".txt", "r")
         session_data = []
         for line in file:
+            print(str(line))
             session_data.append(line)
+            clipboard.append(line)
         file.close()
+        
     except:
         print("Cannot find session, nothing was loaded to clipboard")
     
@@ -158,11 +169,11 @@ def thread_func():
     global canvas_entries
 
     # Generate session selection buttons
-    numSessions = 0
+    num_sessions = 0
     for file in os.listdir(sessions_dir):
         print(str(file))
         if file.endswith(".txt"):
-            numSessions+=1
+            num_sessions+=1
             cur_session = file.replace(".txt","")
             print(cur_session)
             file_name = str(file).replace(".txt","")
@@ -171,10 +182,10 @@ def thread_func():
             session_button = ttk.Button(session_frame, text=file_name, width=10)
             session_button.configure(command=
                 lambda x=cur_session: load_session_to_clipboard(x))
-            session_button.grid(row=0, column=numSessions)
+            session_button.grid(row=0, column=num_sessions)
             session_buttons.append(session_button)
     # If no session was found in the directory, make one
-    if numSessions < 1:
+    if num_sessions < 1:
         print("No sessions found, creating Default")
         # Create empty default session
         file = open("Default.txt", "w")
@@ -187,7 +198,7 @@ def thread_func():
         session_buttons.append(session_button)
 
             
-    while True:
+    while is_running is True:
         test_threading+=1
         temp_value = pyperclip.paste()
         if temp_value != recent_value or len(clipboard) == 0:
@@ -196,6 +207,7 @@ def thread_func():
             # Check that there is room for the entry and that it is not already in clipboard
             if len(clipboard) < clipboard_size and recent_value not in clipboard:
                 clipboard.append(recent_value)
+                
                 # Add GUI buttons for copying and deleting the new entry
                 canvas_entries.append(ttk.Button(entry_canvas, text=recent_value,
                                 width=100, command=lambda text=temp_value: copy(text)))
@@ -261,4 +273,11 @@ if __name__ == '__main__':
     clipboard_detection = Thread(target=thread_func, args=())
     clipboard_detection.start()
     
+    def on_closing():
+        print("Closing")
+        global is_running
+        is_running = False
+        root.destroy()
+
+    root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()
