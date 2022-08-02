@@ -82,28 +82,33 @@ def delete(entry, txt, button):
             print("failed to remove entry from session")
     except:
         print('Deletion of '+str(entry)+' with text '+str(txt)+'failed.')
+def clear_test(e):
+    clear(clear_cur=True)
 '''
 Clears out the clipboard
 '''
 def clear(*,clear_cur=False):
     # Empty the clipboard and entries (including GUI elements)
+    print("CLEAR")
     cur_clip = pyperclip.paste()
-    cur_entry = canvas_entries[-1]
-    cur_del_button = del_buttons[-1]
-    
-    for x in clipboard:
+    cur_entry = canvas_entries[-0]
+    cur_del_button = del_buttons[-0]
+
+    print("clipboard length : "+str(len(clipboard)))
+    for x in reversed(clipboard):
         print("clipboard : "+str(x))
-        print(x)
-        if clear_cur is True and x == clear_cur or x != clear_cur:
-            clipboard.remove(x)
-    for x in canvas_entries:
-        if clear_cur is True and x == cur_entry or x != cur_entry:
-            x.destroy()
-            canvas_entries.remove(x)
-    for x in del_buttons:
-        if clear_cur is True and x == cur_del_button or x != cur_del_button:
-            x.destroy()
-            del_buttons.remove(x)
+        clipboard.remove(x)
+    for x in reversed(canvas_entries):
+        x.destroy()
+        canvas_entries.remove(x)
+    for x in reversed(del_buttons):
+        x.destroy()
+        del_buttons.remove(x)
+    if clear_cur == True:
+        pyperclip.copy("")
+
+    print("clipboard length after clear : "+str(len(clipboard)))
+        
 # Session functions
 def open_session(session):
     try:
@@ -129,9 +134,11 @@ def load_session_to_clipboard(session, *, additive=False):
         file = open(selected_session_path+".txt", "r")
         session_data = []
         for line in file:
-            print(str(line))
+            print("line from session: " + str(line))
+            # Copy data to clipboard and create GUI elements for entry
             session_data.append(line)
             clipboard.append(line)
+            GUI_create_entry(line)
         file.close()
         
     except:
@@ -162,6 +169,21 @@ def remove_entry_from_session(entry, *, session=selected_session):
     except:
         print("file open failed")
 
+def GUI_create_entry(temp_value):
+    # Add GUI buttons for copying and deleting the new entry
+    canvas_entries.append(ttk.Button(entry_canvas, text=recent_value,
+                    width=100, command=lambda text=temp_value: copy(text)))
+    print("CANVAS_ENTRIES : "+str(len(canvas_entries))+" CLIPBOARD : "+str(len(clipboard)))
+    canvas_entries[len(clipboard)-1].grid(row=len(clipboard), column=0)
+
+    # Creating Button before configuring command becuase del_button needs to
+    # have a refernce to itself to be able to destroy itself in delete()
+    del_button = ttk.Button(entry_canvas, text="Delete", width=10)
+    del_button.configure(command=lambda entry=canvas_entries[len(clipboard)-1],
+                text=recent_value, button=del_button: delete(entry, text, button))
+    del_button.grid(row=len(clipboard), column=1)
+    del_buttons.append(del_button)
+
 def thread_func():
     # Creating local variant of global var to use
     global recent_value
@@ -171,11 +193,11 @@ def thread_func():
     # Generate session selection buttons
     num_sessions = 0
     for file in os.listdir(sessions_dir):
-        print(str(file))
+        #print(str(file))
         if file.endswith(".txt"):
             num_sessions+=1
             cur_session = file.replace(".txt","")
-            print(cur_session)
+            #print(cur_session)
             file_name = str(file).replace(".txt","")
 
             # Create the Button for loading the current session
@@ -208,18 +230,7 @@ def thread_func():
             if len(clipboard) < clipboard_size and recent_value not in clipboard:
                 clipboard.append(recent_value)
                 
-                # Add GUI buttons for copying and deleting the new entry
-                canvas_entries.append(ttk.Button(entry_canvas, text=recent_value,
-                                width=100, command=lambda text=temp_value: copy(text)))
-                canvas_entries[len(clipboard)-1].grid(row=len(clipboard), column=0)
-                
-                # Creating Button before configuring command becuase del_button needs to
-                # have a refernce to itself to be able to destroy itself in delete()
-                del_button = ttk.Button(entry_canvas, text="Delete", width=10)
-                del_button.configure(command=lambda entry=canvas_entries[len(clipboard)-1],
-                            text=recent_value, button=del_button: delete(entry, text, button))
-                del_button.grid(row=len(clipboard), column=1)
-                del_buttons.append(del_button)
+                GUI_create_entry(temp_value)
                 
             elif len(clipboard) >= clipboard_size:
                 print("Clipboard Full")
@@ -269,6 +280,7 @@ if __name__ == '__main__':
 
     # Bind values
     root.bind('<Control-b>', print_clipboard)
+    root.bind('<Control-o>', clear_test)
 
     clipboard_detection = Thread(target=thread_func, args=())
     clipboard_detection.start()
