@@ -86,25 +86,35 @@ Clears out the clipboard
 '''
 def clear():
     # Empty the clipboard and entries (including GUI elements)
+    print("length "+str(len(clipboard)))
     for x in clipboard:
+        print("clipboard : "+str(x))
+        print(x)
         clipboard.remove(x)
     for x in canvas_entries:
         x.destroy()
         canvas_entries.remove(x)
     for x in del_buttons:
         x.destroy()
-        canvas_entries.remove(x)
+        del_buttons.remove(x)
 # Session functions
 def open_session(session):
     try:
-        selected_session = open(str(sessions_dir) + "\\" + str(session), mode="w+")        
+        selected_session = session
+        selected_session_path = sessions_dir+"\\"+selected_session
+        file = open(selected_session_path+".txt", "r")        
     except:
         print("Cannot open session, creating new session")
-        selected_session = open("Default.txt", mode="w+")
+        selected_session = "Default"
+        file = open("Default.txt", mode="w+")
     selected_session.close()
     
 def load_session_to_clipboard(session, *, additive=False):
     try:
+        # If additive, append session values to clipboard else overwrite
+        # clipboard values with session data
+        if additive == False:
+            clear()
         selected_session = session
         selected_session_path = sessions_dir+"\\"+selected_session
         # Parse Session file into container
@@ -113,10 +123,6 @@ def load_session_to_clipboard(session, *, additive=False):
         for line in file:
             session_data.append(line)
         file.close()
-        # If additive, append session values to clipboard else overwrite
-        # clipboard values with session data
-        if additive == False:
-            clear()
     except:
         print("Cannot find session, nothing was loaded to clipboard")
     
@@ -158,6 +164,7 @@ def thread_func():
         if file.endswith(".txt"):
             numSessions+=1
             cur_session = file.replace(".txt","")
+            print(cur_session)
             file_name = str(file).replace(".txt","")
 
             # Create the Button for loading the current session
