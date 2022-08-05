@@ -14,6 +14,7 @@ from tkinter import ttk
 # Use threading to have Tkinter's mainloop
 # and updating clipboard happen simultaneously
 from threading import Thread
+from context_menu import menus
 
 # GUI Data
 root = tk.Tk()
@@ -47,6 +48,10 @@ selected_session_path = sessions_dir+"\\"+selected_session
 
 is_running = True
 
+# Context Menu functions
+def popup(e):
+    menu.tk_popup(e.x_root, e.y_root)
+
 # Clipboard functions
 def copy(cop):
     recent_value = cop
@@ -54,6 +59,15 @@ def copy(cop):
     
     write_entry_to_session(cop)
     print("COPIED\n"+cop)
+def copy_all():
+    print("COPYALL TEST")
+    full_copy_str = str()
+    for x in clipboard:
+        full_copy_str+=str(x+"\n")
+    pyperclip.copy(full_copy_str)
+    global recent_value
+    recent_value = pyperclip.paste()
+        
 '''
 Deletes an entry from the clipboard along with associated GUI elements.
 '''
@@ -126,8 +140,7 @@ def load_session_to_clipboard(session, *, additive=False):
         # If additive, append session values to clipboard else overwrite
         # clipboard values with session data
         if additive == False:
-            clear()
-            clipboard.append(pyperclip.paste())
+            clear(clear_cur=True)
         selected_session = session
         selected_session_path = sessions_dir+"\\"+selected_session
         # Parse Session file into container
@@ -136,9 +149,9 @@ def load_session_to_clipboard(session, *, additive=False):
         for line in file:
             print("line from session: " + str(line))
             # Copy data to clipboard and create GUI elements for entry
-            session_data.append(line)
-            clipboard.append(line)
-            GUI_create_entry(line)
+            #session_data.append(line)
+            #clipboard.append(line)
+            #GUI_create_entry(line)
         file.close()
         
     except:
@@ -187,7 +200,6 @@ def GUI_create_entry(temp_value):
 def thread_func():
     # Creating local variant of global var to use
     global recent_value
-    global test_threading
     global canvas_entries
 
     # Generate session selection buttons
@@ -221,13 +233,12 @@ def thread_func():
 
             
     while is_running is True:
-        test_threading+=1
         temp_value = pyperclip.paste()
         if temp_value != recent_value or len(clipboard) == 0:
             recent_value = temp_value 
 
             # Check that there is room for the entry and that it is not already in clipboard
-            if len(clipboard) < clipboard_size and recent_value not in clipboard:
+            if len(clipboard) < clipboard_size and recent_value != "" and recent_value not in clipboard:
                 clipboard.append(recent_value)
                 
                 GUI_create_entry(temp_value)
@@ -239,7 +250,10 @@ def thread_func():
                 #print("Item is already inside of clipboard!")
 
         time.sleep(0.5)
-        
+    
+
+
+
 if __name__ == '__main__':
     # GUI main window initialization
     root.title("Clipboard History")
@@ -249,6 +263,13 @@ if __name__ == '__main__':
     root.grid()
     root.grid_columnconfigure(0, weight=1)
     root.grid_rowconfigure(0, weight=1)
+
+
+    # Menu Popup
+    menu = tk.Menu(root, tearoff=False)
+    menu.add_command(label="Create New Session")
+    menu.add_command(label="Copy All Contents", command =copy_all)
+
     
     #text.grid(row=0, column=0, sticky=tk.NSEW)
     entry_canvas.grid(row=2, column=0, sticky=tk.EW)
@@ -281,6 +302,7 @@ if __name__ == '__main__':
     # Bind values
     root.bind('<Control-b>', print_clipboard)
     root.bind('<Control-o>', clear_test)
+    root.bind('<Button-3>', popup) 
 
     clipboard_detection = Thread(target=thread_func, args=())
     clipboard_detection.start()
