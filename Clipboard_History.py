@@ -20,6 +20,7 @@ from context_menu import menus
 root = tk.Tk()
 main_frame = ttk.Frame(root)
 
+# Canvas that displays history entries
 canvas_width = 200;
 canvas_height = 200;
 entry_canvas = tk.Canvas(root, bg="white", height=canvas_height, width=canvas_width,
@@ -27,7 +28,12 @@ entry_canvas = tk.Canvas(root, bg="white", height=canvas_height, width=canvas_wi
 canvas_entries = []
 
 text = tk.Text(root, height=40, width=40, bg='#000000', fg='#FFFFFF')
-test_threading = 0
+
+# Create Entry (context menu command) GUI elements
+create_entry_display = []
+create_entry_del_buttons = []
+create_entry_is_open = False
+
 # Clipboard Data
 entry_display_len = 40
 clipboard_size = 30
@@ -196,7 +202,57 @@ def GUI_create_entry(temp_value):
                 text=recent_value, button=del_button: delete(entry, text, button))
     del_button.grid(row=len(clipboard), column=1)
     del_buttons.append(del_button)
+    
+# Create Entry (from context menu) functions
+def GUI_del_custom_entry(entry, del_button):
+    create_entry_display.remove(entry)
+    entry.destroy()
+    create_entry_del_buttons.remove(del_button)
+    del_button.destroy()    
+    
+    
+def GUI_open_create_entry_menu():
+    global create_entry_is_open
+    if create_entry_is_open == False:
+        create_entry_is_open = True
+        # Creating a new window object for the Entry Creator
+        create_entry_window = tk.Toplevel(root)
+        create_entry_window.title("Entry Creator")
+        create_entry_window.geometry("200x200")
+        create_entry_window.config(bg="#000000")
 
+        def close_entry_window():
+            print("Closing Entry Creator")
+            global create_entry_is_open
+            create_entry_is_open = False
+            create_entry_window.destroy()
+
+        create_entry_window.protocol("WM_DELETE_WINDOW", close_entry_window)
+        
+        create_entry_window.grid()
+        create_entry_window.grid_columnconfigure(0, weight=1)
+        create_entry_window.grid_rowconfigure(0, weight=1)
+        
+        create_entry_menu = tk.Frame(create_entry_window)
+        create_entry_display = []
+        create_entry_del_buttons = []
+        # Recreate the current clipboard entries to display
+        for entry in canvas_entries:
+            # Create entry GUI elements
+            cur_entry = ttk.Button(create_entry_menu,
+                text=clipboard[canvas_entries.index(entry)])
+            cur_del_button = ttk.Button(create_entry_menu, text="Delete", width=10)
+            cur_del_button.configure(command=lambda ent= cur_entry,
+                delete = cur_del_button: GUI_del_custom_entry(ent, delete))
+            # Add entries to containers
+            create_entry_display.append(cur_entry)
+            create_entry_del_buttons.append(cur_del_button)
+            # Add GUI elements to the window
+            cur_entry.grid(row = len(create_entry_display), column = 0) 
+            cur_del_button.grid(row = len(create_entry_display), column = 1)
+'''
+Thread that handles the updating of the clipboard data and GUI widgets
+'''
 def thread_func():
     # Creating local variant of global var to use
     global recent_value
@@ -250,10 +306,11 @@ def thread_func():
                 #print("Item is already inside of clipboard!")
 
         time.sleep(0.5)
-    
 
-
-
+'''
+Main thread that handles TKinter widget setup, control bindings,
+and starting the TKinter mainloop()
+'''
 if __name__ == '__main__':
     # GUI main window initialization
     root.title("Clipboard History")
@@ -268,6 +325,9 @@ if __name__ == '__main__':
     # Menu Popup
     menu = tk.Menu(root, tearoff=False)
     menu.add_command(label="Create New Session")
+    menu.add_command(label="Create New Entry (Text Only)",
+        command = GUI_open_create_entry_menu)
+    menu.add_command(label="Edit Entry (Text Only)")
     menu.add_command(label="Copy All Contents", command =copy_all)
 
     
