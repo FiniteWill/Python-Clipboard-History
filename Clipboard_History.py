@@ -111,8 +111,10 @@ def clear(*,clear_cur=False):
     # Empty the clipboard and entries (including GUI elements)
     print("CLEAR")
     cur_clip = pyperclip.paste()
-    cur_entry = canvas_entries[-0]
-    cur_del_button = del_buttons[-0]
+    if len(canvas_entries) > 0:
+        cur_entry = canvas_entries[-0]
+    if len(del_buttons) > 0:
+        cur_del_button = del_buttons[-0]
 
     print("clipboard length : "+str(len(clipboard)))
     for x in reversed(clipboard):
@@ -143,25 +145,28 @@ def open_session(session):
     
 def load_session_to_clipboard(session, *, additive=False):
     try:
-        # If additive, append session values to clipboard else overwrite
-        # clipboard values with session data
-        if additive == False:
-            clear(clear_cur=True)
-        selected_session = session
-        selected_session_path = sessions_dir+"\\"+selected_session
-        # Parse Session file into container
-        file = open(selected_session_path+".txt", "r")
-        session_data = []
-        for line in file:
-            print("line from session: " + str(line))
-            # Copy data to clipboard and create GUI elements for entry
-            #session_data.append(line)
-            #clipboard.append(line)
-            #GUI_create_entry(line)
-        file.close()
-        
+            # If additive, append session values to clipboard else overwrite
+            # clipboard values with session data
+            if additive == False:
+                clear(clear_cur=True)
+            selected_session = session
+            selected_session_path = sessions_dir+"\\"+selected_session
+            # Parse Session file into container
+            file = open(selected_session_path+".txt", "r")
+            session_data = []
+
+            i=0
+            for line in file:
+                i+=1
+                if line != "":
+                    #print("line from session: " + str(line))
+                    # Copy data to clipboard and create GUI elements for entry
+                    session_data.append(line)
+                    clipboard.append(line)
+                    GUI_create_entry(line)
+            file.close()
     except:
-        print("Cannot find session, nothing was loaded to clipboard")
+        print("Session could not be loaded")
     
 def write_entry_to_session(entry, *, session=selected_session):
     # Open up the specificed session file and append the entry to it
@@ -189,19 +194,21 @@ def remove_entry_from_session(entry, *, session=selected_session):
         print("file open failed")
 
 def GUI_create_entry(temp_value):
-    # Add GUI buttons for copying and deleting the new entry
-    canvas_entries.append(ttk.Button(entry_canvas, text=recent_value,
-                    width=100, command=lambda text=temp_value: copy(text)))
-    print("CANVAS_ENTRIES : "+str(len(canvas_entries))+" CLIPBOARD : "+str(len(clipboard)))
-    canvas_entries[len(clipboard)-1].grid(row=len(clipboard), column=0)
+    if temp_value != "" and temp_value != "\n":
 
-    # Creating Button before configuring command becuase del_button needs to
-    # have a refernce to itself to be able to destroy itself in delete()
-    del_button = ttk.Button(entry_canvas, text="Delete", width=10)
-    del_button.configure(command=lambda entry=canvas_entries[len(clipboard)-1],
-                text=recent_value, button=del_button: delete(entry, text, button))
-    del_button.grid(row=len(clipboard), column=1)
-    del_buttons.append(del_button)
+        # Add GUI buttons for copying and deleting the new entry
+        canvas_entries.append(ttk.Button(entry_canvas, text=recent_value,
+                        width=100, command=lambda text=temp_value: copy(text)))
+ 
+        canvas_entries[len(clipboard)-1].grid(row=len(clipboard), column=0)
+
+        # Creating Button before configuring command becuase del_button needs to
+        # have a refernce to itself to be able to destroy itself in delete()
+        del_button = ttk.Button(entry_canvas, text="Delete", width=10)
+        del_button.configure(command=lambda entry=canvas_entries[len(clipboard)-1],
+                    text=recent_value, button=del_button: delete(entry, text, button))
+        del_button.grid(row=len(clipboard), column=1)
+        del_buttons.append(del_button)
     
 # Create Entry (from context menu) functions
 def GUI_del_custom_entry(entry, del_button):
@@ -221,6 +228,10 @@ def GUI_open_create_entry_menu():
         create_entry_window.geometry("200x200")
         create_entry_window.config(bg="#000000")
 
+        create_entry_canvas = tk.Canvas(create_entry_window, height=1000,
+            width=1000, bg="black")
+        create_entry_canvas.grid(row=0, column=0, sticky="NSEW")
+
         def close_entry_window():
             print("Closing Entry Creator")
             global create_entry_is_open
@@ -233,23 +244,21 @@ def GUI_open_create_entry_menu():
         create_entry_window.grid_columnconfigure(0, weight=1)
         create_entry_window.grid_rowconfigure(0, weight=1)
         
-        create_entry_menu = tk.Frame(create_entry_window)
+        #create_entry_menu = tk.Frame(create_entry_window)
+        #create_entry_menu = tk.Canvas(create_entry_window)
+
+        # Recreate the current clipboard entries to display
         create_entry_display = []
         create_entry_del_buttons = []
-        # Recreate the current clipboard entries to display
+        
         for entry in canvas_entries:
             # Create entry GUI elements
-            cur_entry = ttk.Button(create_entry_menu,
-                text=clipboard[canvas_entries.index(entry)])
-            cur_del_button = ttk.Button(create_entry_menu, text="Delete", width=10)
-            cur_del_button.configure(command=lambda ent= cur_entry,
-                delete = cur_del_button: GUI_del_custom_entry(ent, delete))
+            cur_entry = tk.Label(create_entry_canvas,
+                text=clipboard[canvas_entries.index(entry)], bg="white")
             # Add entries to containers
             create_entry_display.append(cur_entry)
-            create_entry_del_buttons.append(cur_del_button)
             # Add GUI elements to the window
             cur_entry.grid(row = len(create_entry_display), column = 0) 
-            cur_del_button.grid(row = len(create_entry_display), column = 1)
 '''
 Thread that handles the updating of the clipboard data and GUI widgets
 '''
