@@ -46,7 +46,7 @@ session_frame.grid(row=0,column=0)
 
 session_dir_name = "\\Test"
 sessions_dir = os.path.expanduser("~\Desktop")+session_dir_name
-#os.getcwd()+session_dir_name
+
 session_buttons = []
 all_sessions = []
 selected_session = "Default"
@@ -88,7 +88,7 @@ def delete(entry, txt, button):
         # Delete the GUI button for deleting an entry
         del_buttons.remove(button)
         button.destroy()
-        # Shift GUI elements
+        # Shift GUI elements 
         i=0
         for x in range(0,len(clipboard)):
             #print('Clipboard Entry '+str(clipboard[x])+' row = '+str(i))
@@ -228,17 +228,16 @@ def GUI_open_create_entry_menu():
         create_entry_window.geometry("200x200")
         create_entry_window.config(bg="#000000")
 
-        create_entry_canvas = tk.Canvas(create_entry_window, height=1000,
-            width=1000, bg="black")
+        create_entry_canvas = tk.Canvas(create_entry_window,bg="black")
         create_entry_canvas.grid(row=0, column=0, sticky="NSEW")
 
-        def close_entry_window():
+        def __close_entry_window():
             print("Closing Entry Creator")
             global create_entry_is_open
             create_entry_is_open = False
             create_entry_window.destroy()
 
-        create_entry_window.protocol("WM_DELETE_WINDOW", close_entry_window)
+        create_entry_window.protocol("WM_DELETE_WINDOW", __close_entry_window)
         
         create_entry_window.grid()
         create_entry_window.grid_columnconfigure(0, weight=1)
@@ -249,16 +248,52 @@ def GUI_open_create_entry_menu():
 
         # Recreate the current clipboard entries to display
         create_entry_display = []
-        create_entry_del_buttons = []
-        
-        for entry in canvas_entries:
+
+        def __add_created_entry(txt):
+            if isinstance(txt, str):
+                print("AAAAAAAAAA: "+str(txt))
+                txt_val = txt
+            elif isinstance(txt, tk.Entry):
+                print("BBBBBBBBBB: "+txt.get())
+                txt_val = txt.get()
             # Create entry GUI elements
             cur_entry = tk.Label(create_entry_canvas,
-                text=clipboard[canvas_entries.index(entry)], bg="white")
-            # Add entries to containers
+                text=txt_val, bg="white", borderwidth=1)
+            # Add entry to containers
             create_entry_display.append(cur_entry)
+            # Shift other entries down
+            '''
+            for i in range(len(create_entry_display), 0, -1):
+                if i > len(create_entry_display):
+                    create_entry_display[i].grid(row = i + 1, column = 0, sticky="EW")
+            '''
+            i = len(create_entry_display)
+            for ent in create_entry_display:
+                ent_x = 0
+                ent_y = 0
+                ent.grid_location(ent_x,ent_y)
+                #print("POSITION : "+str(ent.grid_location(ent_x,ent_y)))
+                ent.grid(row = i+1, column = 0)
+                i-=1
             # Add GUI elements to the window
-            cur_entry.grid(row = len(create_entry_display), column = 0) 
+            cur_entry.grid(row = 1,
+                column = 0, sticky="EW")
+            
+            
+            
+        # Add entries from the clipboard
+        for entry in canvas_entries:
+            __add_created_entry(clipboard[canvas_entries.index(entry)])
+        # Add Entry for entering a value for a new entry
+        create_entry_input = tk.Entry(create_entry_canvas, text="", bg="white",
+            width=80)
+        create_entry_input.grid(row=0, column = 0, sticky="EW")
+        # Add Button for adding entry using the current input value
+        create_entry_button = ttk.Button(create_entry_canvas, text="Add",
+            command=lambda x = create_entry_input :
+            __add_created_entry(x))
+        create_entry_button.grid(row = 0, column = 1)
+                                 
 '''
 Thread that handles the updating of the clipboard data and GUI widgets
 '''
