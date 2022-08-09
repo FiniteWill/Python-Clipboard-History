@@ -195,20 +195,28 @@ def remove_entry_from_session(entry, *, session=selected_session):
 
 def GUI_create_entry(temp_value):
     if temp_value != "" and temp_value != "\n":
+        # Check that there is room for the entry and that it is not already in clipboard
+        if len(clipboard) < clipboard_size and recent_value != "" and temp_value not in clipboard:
+            clipboard.append(temp_value)
+            # Add GUI buttons for copying and deleting the new entry
+            canvas_entries.append(ttk.Button(entry_canvas, text=temp_value,
+                width=100, command=lambda text=temp_value: copy(text)))
+     
+            canvas_entries[len(clipboard)-1].grid(row=len(clipboard), column=0)
 
-        # Add GUI buttons for copying and deleting the new entry
-        canvas_entries.append(ttk.Button(entry_canvas, text=recent_value,
-                        width=100, command=lambda text=temp_value: copy(text)))
- 
-        canvas_entries[len(clipboard)-1].grid(row=len(clipboard), column=0)
+            # Creating Button before configuring command becuase del_button needs to
+            # have a refernce to itself to be able to destroy itself in delete()
+            del_button = ttk.Button(entry_canvas, text="Delete", width=10)
+            del_button.configure(command=lambda entry=canvas_entries[len(clipboard)-1],
+                text=recent_value, button=del_button: delete(entry, text, button))
+            del_button.grid(row=len(clipboard), column=1)
+            del_buttons.append(del_button)
 
-        # Creating Button before configuring command becuase del_button needs to
-        # have a refernce to itself to be able to destroy itself in delete()
-        del_button = ttk.Button(entry_canvas, text="Delete", width=10)
-        del_button.configure(command=lambda entry=canvas_entries[len(clipboard)-1],
-                    text=recent_value, button=del_button: delete(entry, text, button))
-        del_button.grid(row=len(clipboard), column=1)
-        del_buttons.append(del_button)
+        elif len(clipboard) >= clipboard_size:
+            print("Clipboard Full")
+        else:
+            pass
+            #print("Item is already inside of clipboard!")
     
 # Create Entry (from context menu) functions
 def GUI_del_custom_entry(entry, del_button):
@@ -249,49 +257,63 @@ def GUI_open_create_entry_menu():
         # Recreate the current clipboard entries to display
         create_entry_display = []
 
-        def __add_created_entry(txt):
+        def __add_created_entry(txt, new_entry = False):
             if isinstance(txt, str):
                 print("AAAAAAAAAA: "+str(txt))
                 txt_val = txt
             elif isinstance(txt, tk.Entry):
                 print("BBBBBBBBBB: "+txt.get())
                 txt_val = txt.get()
-            # Create entry GUI elements
-            cur_entry = tk.Label(create_entry_canvas,
-                text=txt_val, bg="white", borderwidth=1)
-            # Add entry to containers
-            create_entry_display.append(cur_entry)
-            # Shift other entries down
-            '''
-            for i in range(len(create_entry_display), 0, -1):
-                if i > len(create_entry_display):
-                    create_entry_display[i].grid(row = i + 1, column = 0, sticky="EW")
-            '''
-            i = len(create_entry_display)
-            for ent in create_entry_display:
-                ent_x = 0
-                ent_y = 0
-                ent.grid_location(ent_x,ent_y)
-                #print("POSITION : "+str(ent.grid_location(ent_x,ent_y)))
-                ent.grid(row = i+1, column = 0)
-                i-=1
-            # Add GUI elements to the window
-            cur_entry.grid(row = 1,
-                column = 0, sticky="EW")
-            
-            
-            
+            if txt_val != "" and txt_val != "\n":
+
+                if new_entry == True and txt_val not in clipboard:
+                    print("ADD TO CANVAS "+str(len(canvas_entries)))
+                    GUI_create_entry(txt_val)
+                    print(str(len(canvas_entries)))
+
+                    print("ADDING TO CREATE ENTRIES MENU (NEW VAL)")
+                    # Create entry GUI elements
+                    cur_entry = tk.Label(create_entry_canvas,
+                        text=txt_val, bg="white", borderwidth=1)
+                    # Add entry to containers
+                    create_entry_display.append(cur_entry)
+                    # Shift other entries down
+                    i = len(create_entry_display)
+                    for ent in create_entry_display:
+                        ent.grid(row = i+1, column = 0)
+                        i-=1
+                    # Add GUI elements to the window
+                    cur_entry.grid(row = 1,
+                        column = 0, sticky="EW")
+                    
+                elif new_entry == False:
+                    print("ADDING TO CREATE ENTRIES MENU (NEW VAL)")
+                    # Create entry GUI elements
+                    cur_entry = tk.Label(create_entry_canvas,
+                        text=txt_val, bg="white", borderwidth=1)
+                    # Add entry to containers
+                    create_entry_display.append(cur_entry)
+                    # Shift other entries down
+                    i = len(create_entry_display)
+                    for ent in create_entry_display:
+                        ent.grid(row = i+1, column = 0)
+                        i-=1
+                    # Add GUI elements to the window
+                    cur_entry.grid(row = 1,
+                        column = 0, sticky="EW")
+
+ 
         # Add entries from the clipboard
         for entry in canvas_entries:
-            __add_created_entry(clipboard[canvas_entries.index(entry)])
+            print("CLIP LEN: "+str(len(clipboard))+" INDEX : "+str(canvas_entries.index(entry)))
+            __add_created_entry(clipboard[canvas_entries.index(entry)], False)
         # Add Entry for entering a value for a new entry
         create_entry_input = tk.Entry(create_entry_canvas, text="", bg="white",
             width=80)
         create_entry_input.grid(row=0, column = 0, sticky="EW")
         # Add Button for adding entry using the current input value
         create_entry_button = ttk.Button(create_entry_canvas, text="Add",
-            command=lambda x = create_entry_input :
-            __add_created_entry(x))
+            command=lambda x = create_entry_input : __add_created_entry(x, True))
         create_entry_button.grid(row = 0, column = 1)
                                  
 '''
@@ -336,18 +358,8 @@ def thread_func():
         temp_value = pyperclip.paste()
         if temp_value != recent_value or len(clipboard) == 0:
             recent_value = temp_value 
-
-            # Check that there is room for the entry and that it is not already in clipboard
-            if len(clipboard) < clipboard_size and recent_value != "" and recent_value not in clipboard:
-                clipboard.append(recent_value)
                 
-                GUI_create_entry(temp_value)
-                
-            elif len(clipboard) >= clipboard_size:
-                print("Clipboard Full")
-            else:
-                pass
-                #print("Item is already inside of clipboard!")
+            GUI_create_entry(temp_value)
 
         time.sleep(0.5)
 
@@ -389,8 +401,8 @@ if __name__ == '__main__':
     
     entry_canvas.config(yscrollcommand=scrollbar.set)
     entry_canvas.configure(scrollregion=entry_canvas.bbox("all"))
-    entry_canvas.bind('<Configure>', lambda e: entry_canvas.configure(scrollregion
-                       = entry_canvas.bbox("all")))     
+    entry_canvas.bind('<Configure>', lambda e:
+        entry_canvas.configure(scrollregion=entry_canvas.bbox("all")))     
 
     second_frame = ttk.Frame(entry_canvas)
 
