@@ -193,6 +193,10 @@ def remove_entry_from_session(entry, *, session=selected_session):
     except:
         print("file open failed")
 
+def craete_new_session():
+    pass
+
+# Create Entry (Context menu command) functions
 def GUI_create_entry(temp_value):
     if temp_value != "" and temp_value != "\n":
         # Check that there is room for the entry and that it is not already in clipboard
@@ -201,7 +205,7 @@ def GUI_create_entry(temp_value):
             # Add GUI buttons for copying and deleting the new entry
             canvas_entries.append(ttk.Button(entry_canvas, text=temp_value,
                 width=100, command=lambda text=temp_value: copy(text)))
-     
+            print("TEST "+str(len(clipboard)-1))
             canvas_entries[len(clipboard)-1].grid(row=len(clipboard), column=0)
 
             # Creating Button before configuring command becuase del_button needs to
@@ -255,23 +259,21 @@ def GUI_open_create_entry_menu():
         #create_entry_menu = tk.Canvas(create_entry_window)
 
         # Recreate the current clipboard entries to display
+
         create_entry_display = []
 
         def __add_created_entry(txt, new_entry = False):
+            # Extract the text from an entry or just use txt directly
             if isinstance(txt, str):
-                print("AAAAAAAAAA: "+str(txt))
                 txt_val = txt
             elif isinstance(txt, tk.Entry):
-                print("BBBBBBBBBB: "+txt.get())
                 txt_val = txt.get()
             if txt_val != "" and txt_val != "\n":
 
+                # Add new entries to clipboard GUI and Create Entry GUI
                 if new_entry == True and txt_val not in clipboard:
-                    print("ADD TO CANVAS "+str(len(canvas_entries)))
                     GUI_create_entry(txt_val)
-                    print(str(len(canvas_entries)))
 
-                    print("ADDING TO CREATE ENTRIES MENU (NEW VAL)")
                     # Create entry GUI elements
                     cur_entry = tk.Label(create_entry_canvas,
                         text=txt_val, bg="white", borderwidth=1)
@@ -285,7 +287,8 @@ def GUI_open_create_entry_menu():
                     # Add GUI elements to the window
                     cur_entry.grid(row = 1,
                         column = 0, sticky="EW")
-                    
+
+                # Otherwise, only add entries to Create Entry GUI (copying from clipboard)
                 elif new_entry == False:
                     print("ADDING TO CREATE ENTRIES MENU (NEW VAL)")
                     # Create entry GUI elements
@@ -301,7 +304,6 @@ def GUI_open_create_entry_menu():
                     # Add GUI elements to the window
                     cur_entry.grid(row = 1,
                         column = 0, sticky="EW")
-
  
         # Add entries from the clipboard
         for entry in canvas_entries:
@@ -385,6 +387,7 @@ if __name__ == '__main__':
         command = GUI_open_create_entry_menu)
     menu.add_command(label="Edit Entry (Text Only)")
     menu.add_command(label="Copy All Contents", command =copy_all)
+    menu.add_command(label="Export Session Into File")
 
     
     #text.grid(row=0, column=0, sticky=tk.NSEW)
