@@ -23,8 +23,8 @@ main_frame = ttk.Frame(root)
 # Canvas that displays history entries
 canvas_width = 200;
 canvas_height = 200;
-entry_canvas = tk.Canvas(root, bg="white", height=canvas_height, width=canvas_width,
-                         scrollregion=(0,0,500,500))
+entry_canvas = tk.Canvas(root, bg="white", height=canvas_height,
+    width=canvas_width, scrollregion=(0,0,500,500))
 canvas_entries = []
 
 text = tk.Text(root, height=40, width=40, bg='#000000', fg='#FFFFFF')
@@ -132,17 +132,6 @@ def clear(*,clear_cur=False):
     print("clipboard length after clear : "+str(len(clipboard)))
         
 # Session functions
-def open_session(session):
-    try:
-        selected_session = session
-        selected_session_path = sessions_dir+"\\"+selected_session
-        file = open(selected_session_path+".txt", "r")        
-    except:
-        print("Cannot open session, creating new session")
-        selected_session = "Default"
-        file = open("Default.txt", mode="w+")
-    selected_session.close()
-    
 def load_session_to_clipboard(session, *, additive=False):
     try:
             # If additive, append session values to clipboard else overwrite
@@ -386,7 +375,8 @@ if __name__ == '__main__':
     menu.add_command(label="Create New Entry (Text Only)",
         command = GUI_open_create_entry_menu)
     menu.add_command(label="Edit Entry (Text Only)")
-    menu.add_command(label="Copy All Contents", command =copy_all)
+    menu.add_command(label="Copy All Contents", command = copy_all)
+    menu.add_command(label="Clear All Contents", command = clear)
     menu.add_command(label="Export Session Into File")
 
     
