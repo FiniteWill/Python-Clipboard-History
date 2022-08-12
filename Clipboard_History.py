@@ -40,6 +40,7 @@ clipboard_size = 30
 clipboard = []
 del_buttons = []
 recent_value = ""
+pinned_value = ""
 # Session Data
 session_frame = ttk.Frame(root)
 session_frame.grid(row=0,column=0)
@@ -226,11 +227,13 @@ def GUI_open_create_entry_menu():
         # Creating a new window object for the Entry Creator
         create_entry_window = tk.Toplevel(root)
         create_entry_window.title("Entry Creator")
-        create_entry_window.geometry("200x200")
+        create_entry_window.geometry("400x200")
         create_entry_window.config(bg="#000000")
+        #create_entry_window.resizable(width=False, height=False)
 
-        create_entry_canvas = tk.Canvas(create_entry_window,bg="black")
-        create_entry_canvas.grid(row=0, column=0, sticky="NSEW")
+        create_entry_canvas = tk.Canvas(create_entry_window,bg="black",
+            width=10)
+        create_entry_canvas.grid(row=0, column=0)
 
         def __close_entry_window():
             print("Closing Entry Creator")
@@ -243,9 +246,6 @@ def GUI_open_create_entry_menu():
         create_entry_window.grid()
         create_entry_window.grid_columnconfigure(0, weight=1)
         create_entry_window.grid_rowconfigure(0, weight=1)
-        
-        #create_entry_menu = tk.Frame(create_entry_window)
-        #create_entry_menu = tk.Canvas(create_entry_window)
 
         # Recreate the current clipboard entries to display
 
@@ -282,7 +282,7 @@ def GUI_open_create_entry_menu():
                     print("ADDING TO CREATE ENTRIES MENU (NEW VAL)")
                     # Create entry GUI elements
                     cur_entry = tk.Label(create_entry_canvas,
-                        text=txt_val, bg="white", borderwidth=1)
+                        text=txt_val, bg="white", borderwidth=3)
                     # Add entry to containers
                     create_entry_display.append(cur_entry)
                     # Shift other entries down
@@ -293,19 +293,23 @@ def GUI_open_create_entry_menu():
                     # Add GUI elements to the window
                     cur_entry.grid(row = 1,
                         column = 0, sticky="EW")
- 
+        def __add_entry_and_close(txt, new_entry=False):
+            __add_created_entry(txt, new_entry)
+            __close_entry_window()
+        '''
         # Add entries from the clipboard
         for entry in canvas_entries:
             print("CLIP LEN: "+str(len(clipboard))+" INDEX : "+str(canvas_entries.index(entry)))
             __add_created_entry(clipboard[canvas_entries.index(entry)], False)
         # Add Entry for entering a value for a new entry
+        '''
         create_entry_input = tk.Entry(create_entry_canvas, text="", bg="white",
             width=80)
-        create_entry_input.grid(row=0, column = 0, sticky="EW")
+        create_entry_input.grid(row=1, column = 0, sticky="EW")
         # Add Button for adding entry using the current input value
         create_entry_button = ttk.Button(create_entry_canvas, text="Add",
-            command=lambda x = create_entry_input : __add_created_entry(x, True))
-        create_entry_button.grid(row = 0, column = 1)
+            command=lambda x = create_entry_input : __add_entry_and_close(x, True))
+        create_entry_button.grid(row = 0, column = 0, sticky="EW")
                                  
 '''
 Thread that handles the updating of the clipboard data and GUI widgets
