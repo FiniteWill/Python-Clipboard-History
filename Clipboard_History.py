@@ -149,10 +149,9 @@ def load_session_to_clipboard(session, *, additive=False):
             for line in file:
                 i+=1
                 if line != "":
-                    #print("line from session: " + str(line))
+                    print("line from session: " + str(line))
                     # Copy data to clipboard and create GUI elements for entry
                     session_data.append(line)
-                    clipboard.append(line)
                     GUI_create_entry(line)
             file.close()
     except:
@@ -183,14 +182,14 @@ def remove_entry_from_session(entry, *, session=selected_session):
     except:
         print("file open failed")
 
-def craete_new_session():
+def create_new_session():
     pass
 
 # Create Entry (Context menu command) functions
 def GUI_create_entry(temp_value):
     if temp_value != "" and temp_value != "\n":
         # Check that there is room for the entry and that it is not already in clipboard
-        if len(clipboard) < clipboard_size and recent_value != "" and temp_value not in clipboard:
+        if len(clipboard) < clipboard_size and str(temp_value) not in clipboard:
             clipboard.append(temp_value)
             # Add GUI buttons for copying and deleting the new entry
             canvas_entries.append(ttk.Button(entry_canvas, text=temp_value,
@@ -202,15 +201,21 @@ def GUI_create_entry(temp_value):
             # have a refernce to itself to be able to destroy itself in delete()
             del_button = ttk.Button(entry_canvas, text="Delete", width=10)
             del_button.configure(command=lambda entry=canvas_entries[len(clipboard)-1],
-                text=recent_value, button=del_button: delete(entry, text, button))
+                text=temp_value, button=del_button: delete(entry, text, button))
             del_button.grid(row=len(clipboard), column=1)
             del_buttons.append(del_button)
 
         elif len(clipboard) >= clipboard_size:
-            print("Clipboard Full")
+            pass
+            #print("Clipboard Full")
         else:
             pass
             #print("Item is already inside of clipboard!")
+            #print(str(temp_value))
+            #print("recent "+str(recent_value))
+    else:
+        pass
+        #print("Whitespace or empty entry")
     
 # Create Entry (from context menu) functions
 def GUI_del_custom_entry(entry, del_button):
