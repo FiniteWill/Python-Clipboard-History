@@ -311,9 +311,13 @@ def GUI_open_create_entry_menu():
         create_entry_input = tk.Entry(create_entry_canvas, text="", bg="white",
             width=80)
         create_entry_input.grid(row=1, column = 0, sticky="EW")
+        # Bind enter to adding entry
+        create_entry_input.bind('<Return>', lambda x = create_entry_input :
+            __add_entry_and_close(x.get(), True))
         # Add Button for adding entry using the current input value
         create_entry_button = ttk.Button(create_entry_canvas, text="Add",
-            command=lambda x = create_entry_input : __add_entry_and_close(x, True))
+            command=lambda x = create_entry_input :
+            __add_entry_and_close(x, True))
         create_entry_button.grid(row = 0, column = 0, sticky="EW")
                                  
 '''
