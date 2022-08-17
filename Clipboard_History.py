@@ -44,6 +44,9 @@ clipboard = []
 del_buttons = []
 recent_value = ""
 pinned_value = ""
+
+# Whether the clipboard can be left empty (final entry deleted)
+leave_empty = True
 # Session Data
 session_frame = ttk.Frame(root)
 session_frame.grid(row=0,column=0)
@@ -86,6 +89,17 @@ Deletes an entry from the clipboard along with associated GUI elements.
 '''
 def delete(entry, txt, button):
     try:
+        '''
+        Save the value if this was the last entry being deleted
+        so that the entry does not instantly return when there
+        is a difference between the with the current clipboard copy
+        and recent_value
+        '''
+        if len(clipboard) == 1:
+            global recent_value, leave_empty
+            recent_value = pyperclip.paste()
+            
+            
         # Get the clipboard element of this entry and remove it
         y=clipboard.index(txt)
         clipboard.remove(clipboard[y])
@@ -95,6 +109,7 @@ def delete(entry, txt, button):
         # Delete the GUI button for deleting an entry
         del_buttons.remove(button)
         button.destroy()
+
         # Shift GUI elements 
         i=0
         for x in range(0,len(clipboard)):
@@ -396,7 +411,7 @@ def thread_func():
             
     while is_running is True:
         temp_value = pyperclip.paste()
-        if temp_value != recent_value or len(clipboard) == 0:
+        if temp_value != recent_value or len(clipboard) == 0 and not leave_empty:
             recent_value = temp_value 
                 
             GUI_create_entry(temp_value)
