@@ -34,6 +34,9 @@ create_entry_display = []
 create_entry_del_buttons = []
 create_entry_is_open = False
 
+# Export session to file (context menu command) GUI Data
+export_session_is_open = False
+
 # Clipboard Data
 entry_display_len = 40
 clipboard_size = 30
@@ -52,6 +55,9 @@ session_buttons = []
 all_sessions = []
 selected_session = "Default"
 selected_session_path = sessions_dir+"\\"+selected_session
+
+# Export Session Data
+export_session_is_is_running = False
 
 is_running = True
 
@@ -191,8 +197,13 @@ def GUI_create_entry(temp_value):
         # Check that there is room for the entry and that it is not already in clipboard
         if len(clipboard) < clipboard_size and str(temp_value) not in clipboard:
             clipboard.append(temp_value)
+            # Create a condensed version of the text for displaying
+            display_txt = temp_value.replace("\n", "")
+            display_txt = display_txt.replace("\t", "")
+            display_txt = display_txt[0:40]
+            
             # Add GUI buttons for copying and deleting the new entry
-            canvas_entries.append(ttk.Button(entry_canvas, text=temp_value,
+            canvas_entries.append(ttk.Button(entry_canvas, text=display_txt,
                 width=100, command=lambda text=temp_value: copy(text)))
             print("TEST "+str(len(clipboard)-1))
             canvas_entries[len(clipboard)-1].grid(row=len(clipboard), column=0)
@@ -319,6 +330,31 @@ def GUI_open_create_entry_menu():
             command=lambda x = create_entry_input :
             __add_entry_and_close(x, True))
         create_entry_button.grid(row = 0, column = 0, sticky="EW")
+
+def GUI_open_export_session():
+    global export_session_is_open 
+    if(export_session_is_open == False):
+        export_session_is_open = True
+
+        export_session_window = tk.Toplevel(root)
+        export_session_window.title = "Session Exporter"
+        export_session_window.geometry = "300x300"
+        export_session_window.config(bg="black")
+
+        export_session_canvas = tk.Canvas(export_session_window, bg="white", width=100)
+        export_session_canvas.grid(row=0, column=0)
+
+        def __close_export_window():
+            print("Closing Session Exporter")
+            global export_session_is_is_running
+            export_session_is_is_running = False
+            export_session_window.destroy()
+
+        export_session_window.protocol("WM_DELETE_WINDOW",
+            __close_export_window)
+
+        export_file_type = "DefaultExport.txt"
+        export_file_location = selected_session_path
                                  
 '''
 Thread that handles the updating of the clipboard data and GUI widgets
@@ -382,7 +418,7 @@ if __name__ == '__main__':
     root.grid_rowconfigure(0, weight=1)
 
 
-    # Menu Popup
+    # Context Menu Popup
     menu = tk.Menu(root, tearoff=False)
     menu.add_command(label="Create New Session")
     menu.add_command(label="Create New Entry (Text Only)",
@@ -390,30 +426,22 @@ if __name__ == '__main__':
     menu.add_command(label="Edit Entry (Text Only)")
     menu.add_command(label="Copy All Contents", command = copy_all)
     menu.add_command(label="Clear All Contents", command = clear)
-    menu.add_command(label="Export Session Into File")
+    menu.add_command(label="Export Session Into File", command=GUI_open_export_session)
 
-    
-    #text.grid(row=0, column=0, sticky=tk.NSEW)
-    entry_canvas.grid(row=2, column=0, sticky=tk.EW)
-    
+    entry_canvas.grid(row=2, column=0, sticky=tk.EW)    
 
     # create a scrollbar widget and set its command to the text widget
-    scrollbar = ttk.Scrollbar(root, orient='vertical', command=entry_canvas.yview)
-    scrollbar.grid(row=0, column=3, sticky="ns")
-
-    # communicate back to the scrollbar
-    #entry_canvas['yscrollcommand'] = scrollbar.set
-    #entry_canvas['yscrollcommand'] = scrollbar.set
+    scrollbar = ttk.Scrollbar(root, orient='vertical')
+    scrollbar.grid(row=0, column=1, sticky="ns")
+    #scrollbar.config(command=entry_canvas.yview)
     
     entry_canvas.config(yscrollcommand=scrollbar.set)
-    entry_canvas.configure(scrollregion=entry_canvas.bbox("all"))
+    scrollbar.config(command=entry_canvas.yview)
+    '''
+    #entry_canvas.configure(scrollregion=entry_canvas.bbox("all"))
     entry_canvas.bind('<Configure>', lambda e:
         entry_canvas.configure(scrollregion=entry_canvas.bbox("all")))     
-
-    second_frame = ttk.Frame(entry_canvas)
-
-    entry_canvas.create_window((0,0), window=second_frame, anchor="nw")
-    
+    '''
     def print_clipboard(e):
         for i in range(0, len(clipboard)):
             print('Clipboard ['+str(i)+'] '+str(clipboard[i]))
