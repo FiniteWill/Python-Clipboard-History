@@ -436,6 +436,8 @@ if __name__ == '__main__':
     # Context Menu Popup
     menu = tk.Menu(root, tearoff=False)
     menu.add_command(label="Create New Session")
+    menu.add_command(label="Add Current Clipboard Content as Entry",
+        command = lambda x = pyperclip.paste() : GUI_create_entry(x))
     menu.add_command(label="Create New Entry (Text Only)",
         command = GUI_open_create_entry_menu)
     menu.add_command(label="Edit Entry (Text Only)")
