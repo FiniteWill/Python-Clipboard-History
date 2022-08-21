@@ -407,7 +407,6 @@ def thread_func():
         session_button = ttk.Button(file, text="Default", width=10)
         session_button.configure(command=load_session_to_clipboard(selected_session))
         session_buttons.append(session_button)
-
             
     while is_running is True:
         temp_value = pyperclip.paste()
@@ -437,7 +436,7 @@ if __name__ == '__main__':
     menu = tk.Menu(root, tearoff=False)
     menu.add_command(label="Create New Session")
     menu.add_command(label="Add Current Clipboard Content as Entry",
-        command = lambda x = pyperclip.paste() : GUI_create_entry(x))
+        command = lambda txt = pyperclip.paste() : GUI_create_entry(txt))
     menu.add_command(label="Create New Entry (Text Only)",
         command = GUI_open_create_entry_menu)
     menu.add_command(label="Edit Entry (Text Only)")
@@ -467,6 +466,8 @@ if __name__ == '__main__':
     entry = tk.StringVar()
 
     # Bind values
+    root.bind('<Control-c>', lambda e: GUI_create_entry(pyperclip.paste()))
+    root.bind('<Control-C>', lambda e: GUI_create_entry(pyperclip.paste()))
     root.bind('<Control-b>', print_clipboard)
     root.bind('<Control-o>', clear_test)
     root.bind('<Button-3>', popup) 
