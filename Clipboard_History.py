@@ -466,8 +466,10 @@ if __name__ == '__main__':
     entry = tk.StringVar()
 
     # Bind values
-    root.bind('<Control-c>', lambda e: GUI_create_entry(pyperclip.paste()))
-    root.bind('<Control-C>', lambda e: GUI_create_entry(pyperclip.paste()))
+    root.bind('<Control-v>', lambda e: GUI_create_entry(pyperclip.paste()))
+    root.bind('<Control-V>', lambda e: GUI_create_entry(pyperclip.paste()))
+    root.bind('<Control-c>', lambda e: pyperclip.copy(clipboard[-0]))
+    root.bind('<Control-C>', lambda e: pyperclip.copy(clipboard[-0]))
     root.bind('<Control-b>', print_clipboard)
     root.bind('<Control-o>', clear_test)
     root.bind('<Button-3>', popup) 
