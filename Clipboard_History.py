@@ -352,8 +352,8 @@ def GUI_open_export_session():
         export_session_is_open = True
 
         export_session_window = tk.Toplevel(root)
-        export_session_window.title = "Session Exporter"
-        export_session_window.geometry = "300x300"
+        export_session_window.title("Session Exporter")
+        export_session_window.geometry("300x200")
         export_session_window.config(bg="black")
 
         export_session_canvas = tk.Canvas(export_session_window, bg="white", width=100)
@@ -361,8 +361,8 @@ def GUI_open_export_session():
 
         def __close_export_window():
             print("Closing Session Exporter")
-            global export_session_is_is_running
-            export_session_is_is_running = False
+            global export_session_is_is_open
+            export_session_is_open = False
             export_session_window.destroy()
 
         export_session_window.protocol("WM_DELETE_WINDOW",
