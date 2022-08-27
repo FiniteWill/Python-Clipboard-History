@@ -66,6 +66,20 @@ is_running = True
 
 # Context Menu functions
 def popup(e):
+    # Check if the clipboard's current entry is included in GUI entries
+    is_included = False
+    for entry in canvas_entries:
+        if entry['text'] == str(pyperclip.paste())[0:40]:
+            print('true')
+            is_included = True
+    # Disabled the command for adding clipboard content if it is included
+    if is_included:
+        global menu
+        menu.entryconfig("Add Current Clipboard Content as Entry",
+            state="disabled")
+    else:
+        menu.entryconfig("Add Current Clipboard Content as Entry",
+            state="normal")
     menu.tk_popup(e.x_root, e.y_root)
 
 # Clipboard functions
@@ -158,7 +172,7 @@ def load_session_to_clipboard(session, *, additive=False):
     try:
             # If additive, append session values to clipboard else overwrite
             # clipboard values with session data
-            if additive == False:
+            if not additive:
                 clear(clear_cur=True)
             selected_session = session
             selected_session_path = sessions_dir+"\\"+selected_session
@@ -433,6 +447,7 @@ if __name__ == '__main__':
 
 
     # Context Menu Popup
+    global menu
     menu = tk.Menu(root, tearoff=False)
     menu.add_command(label="Create New Session")
     menu.add_command(label="Add Current Clipboard Content as Entry",
@@ -461,7 +476,6 @@ if __name__ == '__main__':
     def print_clipboard(e):
         for i in range(0, len(clipboard)):
             print('Clipboard ['+str(i)+'] '+str(clipboard[i]))
-            print(canvas_entries[i].grid_info())
             
     entry = tk.StringVar()
 
