@@ -183,7 +183,7 @@ def load_session_to_clipboard(session, *, additive=False):
             i=0
             for line in file:
                 i+=1
-                if line != "":
+                if line != "" and line != "\n":
                     print("line from session: " + str(line))
                     # Copy data to clipboard and create GUI elements for entry
                     session_data.append(line)
